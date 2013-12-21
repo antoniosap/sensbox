@@ -1,7 +1,7 @@
 
 /******************************************************************
  * soft.vers:             SENS_BOX_BT_SMALL
- * arduino soft.version:  1.0.5
+ * arduino soft.version:  1.0.6
  * arduino board version: Duemilanove, Arduino UNO
  * bootloader:            Duemilanove --> se diverso da error sync
  * interface:             9600/38400/115200,8,N,1
@@ -44,9 +44,9 @@ typedef union {
 //#define DEV_HCZ-5D-A
 #define DEV_DHT11
 //#define HC_05_PROGRAM
-/*** CONFIGURATION ************************************************/
+/*** CONFIGURATION END ********************************************/
 #ifdef SENS_BOX_BT_SMALL
-const char *cVersion = "SENS_BOX_BT_SMALL 20130909";
+const char *cVersion = "SENS_BOX_BT_SMALL 20131220";
 #else
 const char *cVersion = "SENS_BOX_SERIAL 20130122";
 #endif
@@ -138,10 +138,8 @@ DHT11 dht11(DHT11_PIN);
 /******************************/
 
 #ifdef ANDROID_ENABLE
-/** ANDROID ********************/
-//#include <MeetAndroid.h>
-// Bluetooth MAC: 00:06:66:08:E7:60
-//MeetAndroid meetAndroid;
+/** ANDROID *******************/
+//
 /******************************/
 #endif
 
@@ -168,6 +166,7 @@ Bounce BTNRbouncer = Bounce(cBTNRPin, 5);
 #define VBAT_PIN            A0
 #define VBATT_DIVIDER       (5)       // divisore front-end analogico
 #define VBAT_LOWBATT        (1130)    // = 11.30V di batteria 12V @5v vref
+#define VBAT_ALERTBATT      (1100)    // = 11.00V di batteria 12V @5v vref
 // volt batteria misurato: nel formato 99.99V - è il valore * 100
 word vBAT;
 /******************************/
@@ -830,7 +829,10 @@ void MagikEEPROM() {
 }
 
 void ComputeLimits() {
-   byte bTrigger = 0;
+   byte RL1 = digitalRead(cREL1Pin);
+   byte RL2 = digitalRead(cREL2Pin);
+   byte RL3 = digitalRead(cREL3Pin);
+   byte RL4 = digitalRead(cREL4Pin);
    
    for (int i = 0; i < cReleMemory; i++) {
       float memValueStore = memRfvalue[i].tfloat;
@@ -838,88 +840,92 @@ void ComputeLimits() {
       switch (memRtypeop[i]) {
         case krT_GT_EQ: // T>=
           if (temperature >= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krT_LT_EQ: // T<=
           if (temperature <= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krH_GT_EQ: // H>=
           if (humidity >= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krH_LT_EQ: // H<=
           if (humidity <= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krD_GT_EQ: // D>=
           if (dewpoint >= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krD_LT_EQ: // D<=
           if (dewpoint <= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krVL_LT_EQ: // L light<=
           if (vLIGHT <= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krVL_GT_EQ: // L light>=
           if (vLIGHT >= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krV_LT_EQ:  // V batt<=
           if ((((float)vBAT) / 100.0) <= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krV_GT_EQ:  // V batt>=
           if ((((float)vBAT) / 100.0) >= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krP_LT_EQ:  // moonPhase>=
           if (moonPhase <= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         case krP_GT_EQ:  // moonPhase<=
           if (moonPhase >= memValueStore) {
-            bTrigger = exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
+            exeRELE_SETProcedure(memRreleNr[i], memRreleSt[i]);
           }
           break;
           
         default: break;
       } // end switch
-      
-//    if (bTrigger) {
-//      bTrigger = 0;
-//#ifdef RELE_DRIVER_74HC595
-//      writeHC595(hc595);
-//#endif
-//      Serial << "C " << int(memRreleNr[i]) << " " << char(memRreleSt[i]) << endl;
-//      arduino_ready();
-//    }
     } // end for
+    
+    if (RL1 != digitalRead(cREL1Pin)) {
+      Serial << "C 1 " << codeRelPin(!digitalRead(cREL1Pin)) << endl;
+    }
+    if (RL2 != digitalRead(cREL2Pin)) {
+      Serial << "C 2 " << codeRelPin(!digitalRead(cREL2Pin)) << endl;
+    }
+    if (RL3 != digitalRead(cREL3Pin)) {
+      Serial << "C 3 " << codeRelPin(!digitalRead(cREL3Pin)) << endl;
+    }
+    if (RL4 != digitalRead(cREL4Pin)) {
+      Serial << "C 4 " << codeRelPin(!digitalRead(cREL4Pin)) << endl;
+    }
 }
 
 byte decodeLedPin(char symbol) {
@@ -1273,6 +1279,9 @@ void loop() {
     readVoltBatt();
     if (vBAT < VBAT_LOWBATT) {
         Serial << "LOWB" << endl;
+    } 
+    if (vBAT < VBAT_ALERTBATT) {
+        processAlertBat();
     }
     // *** BAT MONITOR PROCESS END *****
     readVoltLight();
@@ -1779,7 +1788,8 @@ void exeREAD_LOG() {
           break;
         
        case 'X': {
-            bLogDump = logDUMP_END;     
+            Serial << "</log>" << endl;
+            bLogDump = logDUMP_OFF;    
           }
           break;
           
@@ -2359,5 +2369,39 @@ uint32_t julday(int year, byte month, byte day) {
     jul = jul + 2 - ja + floor(0.25 * ja);
   }
   return jul;
+}
+
+void processAlertBat() {
+  Serial << "ALERTB" << endl;
+  
+  byte i;
+  for (i = 0; i < 3; i++) {
+    exeBUZZER();
+    delay(1000);
+  }
+  
+  i = 0;
+  while (1) {
+    wdt_reset();
+    digitalWrite(cLEDLPin, true);
+    digitalWrite(cLEDRPin, true);
+    delay(100);
+    digitalWrite(cLEDLPin, false);
+    digitalWrite(cLEDRPin, false);
+    delay(100);
+    
+    readVoltBatt();
+    if (vBAT >= VBAT_LOWBATT) {
+      // verifica tensioni e ripristino
+      if ((++i) > 100) { 
+         // restore system.
+         logStatus |= logSTAT_LOW;
+         Serial << "OKBATT" << endl;
+         return; 
+      }  
+    } else {
+      i = 0;
+    }
+  }
 }
 
