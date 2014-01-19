@@ -1,10 +1,10 @@
-
 /******************************************************************
  * soft.vers:             SENS_BOX_BT_SMALL
- * arduino soft.version:  1.0.6
+ * arduino IDE version:   1.0.5
  * arduino board version: Duemilanove, Arduino UNO
- * bootloader:            Duemilanove --> se diverso da error sync
- * interface:             9600/38400/115200,8,N,1
+ * bootloader:            
+ * interface:             9600,8,N,1
+ * last revision:         12.1.2014 - loss of power alert
  ******************************************************************/
 
 int dummy = 0;
@@ -46,7 +46,7 @@ typedef union {
 //#define HC_05_PROGRAM
 /*** CONFIGURATION END ********************************************/
 #ifdef SENS_BOX_BT_SMALL
-const char *cVersion = "SENS_BOX_BT_SMALL 20131220";
+const char *cVersion = "SENS_BOX_BT_SMALL 20140112";
 #else
 const char *cVersion = "SENS_BOX_SERIAL 20130122";
 #endif
@@ -169,6 +169,7 @@ Bounce BTNRbouncer = Bounce(cBTNRPin, 5);
 #define VBAT_ALERTBATT      (1100)    // = 11.00V di batteria 12V @5v vref
 // volt batteria misurato: nel formato 99.99V - è il valore * 100
 word vBAT;
+byte alertBATCounter = 0;
 /******************************/
 
 /** LIGHT SENSOR **************/
@@ -1218,6 +1219,8 @@ void setup() {
   testRELE();
 #endif
   DEBUG_MSG("S4");
+  
+  alertBATCounter = 0;
 }
 
 void loop() {
@@ -2372,7 +2375,10 @@ uint32_t julday(int year, byte month, byte day) {
 }
 
 void processAlertBat() {
-  Serial << "ALERTB" << endl;
+  alertBATCounter++;
+  // filter power spikes
+  if (alertBATCounter < 3) { return; }
+  alertBATCounter = 0;
   
   byte i;
   for (i = 0; i < 3; i++) {
@@ -2396,11 +2402,13 @@ void processAlertBat() {
       if ((++i) > 100) { 
          // restore system.
          logStatus |= logSTAT_LOW;
+         alertBATCounter = 0;
          Serial << "OKBATT" << endl;
          return; 
       }  
     } else {
       i = 0;
+      Serial << "ALERTB V:" << (((float)vBAT) / 100.0) << endl;
     }
   }
 }
