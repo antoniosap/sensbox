@@ -5,6 +5,7 @@
  * bootloader:            
  * interface:             9600,8,N,1
  * last revision:         12.1.2014 - loss of power alert
+ *                        06.2.2014 - correct diode delta v
  ******************************************************************/
 
 int dummy = 0;
@@ -46,11 +47,11 @@ typedef union {
 //#define HC_05_PROGRAM
 /*** CONFIGURATION END ********************************************/
 #ifdef SENS_BOX_BT_SMALL
-const char *cVersion = "SENS_BOX_BT_SMALL 20140112";
+const char *cVersion = "SENS_BOX_BT_SMALL 20140206";
 #else
 const char *cVersion = "SENS_BOX_SERIAL 20130122";
 #endif
-const char *cSerialCode = "902390";
+const char *cSerialCode = "902391";
 // ANDROID
 #define ANDROID_ENABLE
 #define BLUETOOTH_ENABLE
@@ -166,9 +167,10 @@ Bounce BTNRbouncer = Bounce(cBTNRPin, 5);
 #define VBAT_PIN            A0
 #define VBATT_DIVIDER       (5)       // divisore front-end analogico
 #define VBAT_LOWBATT        (1130)    // = 11.30V di batteria 12V @5v vref
-#define VBAT_ALERTBATT      (1100)    // = 11.00V di batteria 12V @5v vref
-// volt batteria misurato: nel formato 99.99V - è il valore * 100
-word vBAT;
+#define VBAT_ALERTBATT      (1080)    // = 10.80V di batteria 12V @5v vref
+#define VBAT_DIODE_DELTA_V  (0.79)    // power in diode
+
+word vBAT;                            // volt batteria misurato: nel formato 99.99V - è il valore * 100
 byte alertBATCounter = 0;
 /******************************/
 
@@ -415,7 +417,7 @@ enum
 /*** END CONFIGURATION *********************************************/
 
 void readVoltBatt() {
-   vBAT = (analogRead(VBAT_PIN) * 5.0 / 1024.0) * VBATT_DIVIDER * 100;
+   vBAT = ((analogRead(VBAT_PIN) * 5.0 / 1024.0) * VBATT_DIVIDER + VBAT_DIODE_DELTA_V) * 100;
    // DEBUG 
    //Serial << "V-> " << analogRead(VBAT_PIN) << " V-> " << vBAT << endl;
 }
@@ -1918,7 +1920,8 @@ void processLOG_TIME() {
 //    showTime(now.unixtime());
 //    Serial << endl;
     
-    if (timestamp <= now.unixtime()) {
+    // wait al least 60 seconds, minimum interval for logging
+    if ((timestamp + 60) <= now.unixtime()) {
       byte   check;
       double intPart,fraPart;
        

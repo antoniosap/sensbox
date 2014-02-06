@@ -3,11 +3,11 @@ sensbox
 
 software for arduino shield sensbox
 
-26.10.2012 rev. 31.12.2012
+26.10.2012 rev. 06.02.2014
 --------------------------
 
 sens_box_serial guida console dettaglio comandi
-impostare la porta seriale a: 38400,8,N,1
+impostare la porta seriale a: 9600,8,N,1
 
 esempio connessione all'accensione:
 
@@ -153,16 +153,6 @@ Nota:
   un numero indica la progressione dei records scaricati
   se si inviano altri comandi mentre si scarica il log questi vengono eseguiti
   se si invia un comando G il log dump viene interrotto
-
-
-ATT !: ora una procedura automatica verifica lo stato EEPROM
-ed esegue queste istruzioni se siamo alla prima accensione
-****************************************************************
-in fase di installazione del software dare come primo comando il
->Z 9872 per azzerare tutte le memorie RAM che sono indeterminate
-poi fare, per inizializzare la EEPROM:
->W 8543 1295
-****************************************************************
 
 errori sensore in uscita dopo un comando
 
