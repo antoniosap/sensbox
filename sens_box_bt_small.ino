@@ -8,7 +8,7 @@
  *                        06.2.2014 - correct diode delta v
  ******************************************************************/
 
-int dummy = 0;
+int dummy = 0; 
 
 typedef union {
   uint32_t dword;

@@ -3,7 +3,7 @@ sensbox
 
 software for arduino shield sensbox
 
-26.10.2012 rev. 06.02.2014
+26.10.2012 rev. 06.02.2014 
 --------------------------
 
 sens_box_serial guida console dettaglio comandi
