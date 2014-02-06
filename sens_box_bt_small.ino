@@ -5,7 +5,7 @@
  * bootloader:            
  * interface:             9600,8,N,1
  * last revision:         12.1.2014 - loss of power alert
- *                        06.2.2014 - correct diode delta v
+ *                        06.2.2014 - fix diode delta v
  ******************************************************************/
 
 int dummy = 0; 
